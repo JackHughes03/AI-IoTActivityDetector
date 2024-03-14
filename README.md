@@ -1,4 +1,4 @@
-# AI-IoTActivityDetector
+# AI IoT Activity Detector
 An artificial intelligence model/program for IoT devices to detect activities.
 
 ## Uses
