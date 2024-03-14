@@ -1,5 +1,3 @@
-""" Script to train a Random Forest Classifier model and predict the category of a CSV file """
-
 import os
 import chardet
 import pandas as pd
