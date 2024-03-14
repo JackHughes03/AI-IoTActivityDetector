@@ -1,3 +1,5 @@
+""" Script to train a Random Forest Classifier model and predict the category of a CSV file """
+
 import os
 import chardet
 import pandas as pd
@@ -10,9 +12,9 @@ from collections import Counter
 import pickle
 
 #  Import datasets
-walkdataset = "walk.csv"
-cardataset = "car.csv"
-rundataset = "run.csv"
+walkdataset = "data/walk.csv"
+cardataset = "data/car.csv"
+rundataset = "data/run.csv"
 walkdata = pd.read_csv(walkdataset, sep="\t", encoding='utf-16')
 cardata = pd.read_csv(cardataset, sep="\t", encoding='utf-16')
 rundata = pd.read_csv(rundataset, sep="\t", encoding='utf-16')
@@ -33,7 +35,7 @@ data = pd.concat([walkdata, cardata, rundata])
 data = data.dropna()  # Remove rows with missing values
 
 #  Feature selection. We chose speed as it seems the most relevant
-features = ["Speed (km/h)"]
+features = ["Speed (km/h)", "Heading", "Altitude (m)", "Total Distance (km)"]
 X = data[features]
 y = data["category"]
 
@@ -54,7 +56,7 @@ if trainornot.lower() == "yes":
     model.fit(X_train, y_train)  # Train the model using the training sets
 
     # Save model
-    with open('model.pkl', 'wb') as model_file:
+    with open('model/model.pkl', 'wb') as model_file:
         pickle.dump(model, model_file)
 
     # Generate a classification report
@@ -68,11 +70,11 @@ if trainornot.lower() == "yes":
 
 if trainornot.lower() == "no":
     # Load model
-    with open('model.pkl', 'rb') as model_file:
+    with open('model/model.pkl', 'rb') as model_file:
         model = pickle.load(model_file)
 
-    # Get the current directory where the main script is located
-    current_directory = os.path.dirname(os.path.realpath(__file__))
+    # Get data folder directory
+    current_directory = os.getcwd() + "/data"
 
     # List all CSV files in the current directory
     csv_files = [f for f in os.listdir(current_directory) if f.endswith('.csv')]
@@ -109,14 +111,14 @@ if trainornot.lower() == "no":
         file = csv_files[int(file) - 1]
 
         print("\nYou chose:", file)
-        print("File size: ", os.path.getsize(file), "bytes")
+        print("File size: ", os.path.getsize(current_directory + "/" + file) / 1000, "KB")
 
         # Detect the encoding of the CSV file
-        with open(file, 'rb') as rawdata:
+        with open(current_directory + "/" + file, 'rb') as rawdata:
             result = chardet.detect(rawdata.read(10000))  # You can adjust the buffer size as needed
 
         # Read the CSV file using the detected encoding
-        data = pd.read_csv(file, sep="\t", encoding=result['encoding'])
+        data = pd.read_csv(current_directory + "/" + file, encoding=result['encoding'], sep="\t")
 
         # Preprocess the data
         data = data.iloc[2:]
@@ -129,4 +131,5 @@ if trainornot.lower() == "no":
         most_common_prediction = prediction_counts.most_common(1)[0][0]
         print("Prediction:", "\033[92m", most_common_prediction, "\033[0m")
         endprediction = prediction_counts[most_common_prediction] / len(predictions)  # Calculate accuracy
-        print("Accuracy:", endprediction)  # Print accuracy
+        accuracy = endprediction * 100
+        print("Accuracy: ", accuracy, "%")
